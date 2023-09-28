@@ -1,22 +1,22 @@
-# Configures an nginx web server
-
+# Install nginx with puppet
 package { 'nginx':
-  ensure => installed,
+  ensure => 'installed',
 }
 
-file_line { 'redirecting':
-    ensure => 'present',
-    path   => 'etc/nginx/sites-available/default',
-    after  => 'listen 80 defualt_server;',
-    line   => 'rewrite ^/redirect_me https://www.youtube.com/watch?v=QH2-TGUlwu4 permanent;'
+
+file { '/var/www/html/index.html':
+  ensure  => 'file',
+  content => 'Hello World!',
+  mode    => '0644',
+  require => Package['nginx'],
 }
 
-file { 'landing page':
-    path    => '/var/www/html/index.html':
-    content => 'Hello World!',
+exec { 'append_redirect_me':
+  command => "/usr/bin/sed -i '/^}$/i \\\n\tlocation \\/redirect_me {return 301 https:\\/\\/www.youtube.com\\/watch?v=QH2-TGUlwu4;}' /etc/nginx/sites-available/default",
 }
 
-service {'nginx':
-  ensure  => running,
-  require => package['nginx'],
+service { 'nginx':
+  ensure  => 'running',
+  enable  => true,
+  require => Package['nginx'],
 }
