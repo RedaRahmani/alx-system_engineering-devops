@@ -1,21 +1,12 @@
 #!/usr/bin/env bash
-# Show where subdomains point to
-dig_subdomain () {
-        RECORD_TYPE=$(dig "$2"."$1" | awk 'BEGIN{OFS=" ";} /^'$2'/{print $4}')
-        DESTINATION=$(dig "$2"."$1" | awk 'BEGIN{OFS=" ";} /^'$2'/{print $5}')
-        echo "The subdomain $2 is a $RECORD_TYPE record and points to $DESTINATION"
-}
-domain=$1
-subdomain=$2
-sub=( www lb-01 web-01 web-02 )
+#shows information about subdomains.
 
-if [ $# -eq 1 ]
-then
-	for x in "${sub[@]}"
-	do
-		dig_subdomain "$domain" "$x"
-	done
-elif [ $# -eq 2 ]
-then
-	dig_subdomain "$domain" "$subdomain"
+if [ "$#" -eq 1 ]; then
+    echo "$(dig www.$1 | awk '/ANSWER SECTION:/ {getline; print "The subdomain www is a "$4" record and points to "$5}')"
+    echo "$(dig lb-01.$1 | awk '/ANSWER SECTION:/ {getline; print "The subdomain lb-01 is a "$4" record and points to "$5}')"
+    echo "$(dig web-01.$1 | awk '/ANSWER SECTION:/ {getline; print "The subdomain web-01 is a "$4" record and points to "$5}')"
+    echo "$(dig web-02.$1 | awk '/ANSWER SECTION:/ {getline; print "The subdomain web-02 is a "$4" record and points to "$5}')"
+elif [ "$#" -eq 2 ]; then
+    subdomain=$2
+    echo "$(dig $subdomain.$1 | awk '/ANSWER SECTION:/ {getline; print "The subdomain '"$subdomain"' is a "$4" record and points to "$5}')"
 fi
